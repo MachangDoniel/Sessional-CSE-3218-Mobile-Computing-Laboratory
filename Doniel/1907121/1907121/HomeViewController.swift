@@ -6,29 +6,46 @@
 //
 
 import UIKit
+import FirebaseDatabase
 
 class HomeViewController: UIViewController {
     
     @IBOutlet weak var myButton: UIButton!
     @IBOutlet weak var myImageView: UIImageView!
+    
+    
+    @IBOutlet weak var Email: UILabel!
+    
+    var email = ""
+    var pass = ""
+    
     var isTextVisible = true
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        let databaseReference = Database.database().reference().child("users")
 
-        // Do any additional setup after loading the view.
+        // Query the database to retrieve the most recently added data
+        databaseReference.queryLimited(toLast: 1).observeSingleEvent(of: .value) { (snapshot) in
+            if snapshot.exists() {
+                if let userData = snapshot.children.allObjects.first as? DataSnapshot,
+                   let userValues = userData.value as? [String: Any] {
+                    if let uemail = userValues["Email"] as? String,
+                       let upass = userValues["Pass"] as? String {
+                        self.updateUI(email: uemail, pass: upass)
+                    }
+                }
+            } else {
+                print("No data found in the Firebase database.")
+            }
+        }
     }
-    
 
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destination.
-        // Pass the selected object to the new view controller.
+    func updateUI(email: String, pass: String) {
+        DispatchQueue.main.async {
+            self.Email.text = "Email: \(email)"
+        }
     }
-    */
 
     @IBAction func Change(_ sender: UIButton) {
         
